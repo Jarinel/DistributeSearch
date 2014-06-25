@@ -68,10 +68,13 @@ namespace DistributeSearchProject
             model.UpdateHostsEvent += HostListBoxUpdateHandler;
             model.UpdateSearchResultEvent += ResultListBoxUpdateHandler;
 
-            RemoteSearch.LocalFindFiles = model.FindFiles;
-            RemoteStopFinding.StopFindingFunction = model.StopFinding;
-            RemoteAddResult.LocalAddResult = model.AddResultByRemote;
-            RemoteClearResults.ClearResultsFunction = ClearResults;
+            RemoteSearch.LocalFindFiles                 = model.FindFiles;
+            RemoteStopFinding.StopFindingFunction       = model.StopFinding;
+            RemoteAddResult.LocalAddResult              = model.AddResultByRemote;
+            RemoteHostProvider.GetHostsFunction         = model.GetHosts;
+            RemoteHostProvider.SetActualHostsFunction   = model.SetActualHosts;
+
+            RemoteClearResults.ClearResultsFunction     = ClearResults;
 
             udpService = new UdpService(Settings.BROADCAST_IP, Settings.UDP_PORT, Settings.UDP_BROADCAST_DELAY);
             udpService.NewConnectionEvent += model.AddHost;
@@ -143,7 +146,9 @@ namespace DistributeSearchProject
             ClearResults();
             model.StopFinding();
 
-            List<string> hosts = model.GetHosts();
+            model.SetActualHostsOnMachines(model.CollectActualHosts());
+//            List<string> hosts = model.GetHosts();
+            List<string> hosts = model.GetActualHosts();
 
             foreach (var host in hosts) {
                 try {
@@ -165,7 +170,7 @@ namespace DistributeSearchProject
                 catch (SocketException e) {
                 }
                 //TODO: Concretize Remoting exception (here too)
-                catch (RemotingException e){
+                catch (RemotingException e) {
                 }
             }
         }
@@ -220,8 +225,6 @@ namespace DistributeSearchProject
             sb.Append("IP хоста с файлом: " + file.hostIp + "\n");
             sb.Append("Путь на хосте до файла: " + file.directory + "\n");
             sb.Append("Дата измения файла: " + file.LastModifyTime);
-
-            //TODO: Add download link provide
 
             FileInfoLabel.Content = sb.ToString();
         }

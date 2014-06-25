@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Runtime.Remoting;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +18,8 @@ namespace DistributeSearchProject
     class Model {
         private ConcurrentDictionary<IPAddress, DateTime> hosts = new ConcurrentDictionary<IPAddress, DateTime>();
         private ConcurrentDictionary<string, FileInformation> searchResult = new ConcurrentDictionary<string, FileInformation>();
+
+        private ConcurrentBag<string> actualHosts = new ConcurrentBag<string>(); 
 
         private DistributeSearch searcher;
 
@@ -93,9 +94,17 @@ namespace DistributeSearchProject
             searchResult.Clear();
         }
 
+        public List<string> GetActualHosts() {
+            return new List<string>(actualHosts);
+        } 
+
         public List<string> GetHosts() {
             return new List<string>(hosts.Keys.Select(x => x.ToString()));
-        } 
+        }
+
+        public void SetActualHosts(List<string> list) {
+            actualHosts = new ConcurrentBag<string>(list);
+        }
 
         public void FindFiles(String data) {
             new Thread(() => {
@@ -142,6 +151,54 @@ namespace DistributeSearchProject
             }
         }
 
+        public List<string> CollectActualHosts() {
+            List<string> hosts = GetHosts();
+            List<string> result = new List<string>();
+
+            foreach (var host in hosts) {
+                try {
+                    var remoteHostProviderUrl = "tcp://" + host + ":" + Settings.REMOTING_SERVER_PORT + "/RemoteHostProvider";
+                    var remoteHostProvider =
+                        (RemoteHostProvider) Activator.GetObject(typeof (RemoteHostProvider), remoteHostProviderUrl);
+
+                    var list = remoteHostProvider.GetHosts();
+                    result = result.Union(list).ToList();
+                }
+                catch (SocketException e) {
+                    Log.Write(Log.LogEnum.Warning, e.Message);
+                }
+                catch (RemotingException e) {
+                    Log.Write(Log.LogEnum.Warning, e.Message);
+                }
+                catch (Exception e) {
+                    Log.Write(Log.LogEnum.Error, "", e);
+                }
+            }
+
+            return result;
+        }
+
+        public void SetActualHostsOnMachines(List<string> hosts) {
+            foreach (var host in hosts) {
+                try {
+                    var remoteHostProviderUrl = "tcp://" + host + ":" + Settings.REMOTING_SERVER_PORT + "/RemoteHostProvider";
+                    var remoteHostProvider =
+                        (RemoteHostProvider)Activator.GetObject(typeof(RemoteHostProvider), remoteHostProviderUrl);
+    
+                    remoteHostProvider.SetActualHosts(hosts);
+                }
+                catch (SocketException e) {
+                    Log.Write(Log.LogEnum.Warning, e.Message);
+                }
+                catch (RemotingException e) {
+                    Log.Write(Log.LogEnum.Warning, e.Message);
+                }
+                catch (Exception e) {
+                    Log.Write(Log.LogEnum.Error, "", e);
+                }
+            }
+        }
+
         private void RemoveHostsProc() {
             while (!Closed) {
                 try {
@@ -164,26 +221,36 @@ namespace DistributeSearchProject
         }
 
         private void SendResultToOthers(FileInformation file, string localHost) {
-            var Hosts = hosts.Keys;
+            var Hosts = actualHosts;
             foreach (var host in Hosts) {
                 try {
-                    if (host.ToString().Equals(localHost))
+                    if (host.Equals(localHost))
                         continue;
 
                     var url = "tcp://" + host + ":" + Settings.REMOTING_SERVER_PORT + "/RemoteAddResult";
                     var remote = (RemoteAddResult) Activator.GetObject(typeof (RemoteAddResult), url);
                     remote.AddResult(file, localHost);
+
+                    Log.Write(Log.LogEnum.Info, "Передаем файл " + file.name + " на хост " + host);
                 }
                 catch (SocketException e) {
-                    DateTime time;
-                    hosts.TryRemove(host, out time);
-                    new Thread(() => UpdateHostsEvent(hosts.Keys)).Start();
+                    //We just remove bad host from actualHosts
+                    //From hosts it will be removed
+//                    DateTime time;
+//                    hosts.TryRemove(host, out time);
+//                    new Thread(() => UpdateHostsEvent(hosts.Keys)).Start();
+                    string data;
+                    actualHosts.TryTake(out data);
+                    Log.Write(Log.LogEnum.Info, data + " отключился от поиска");
                 }
                 //TODO: Concretize Remoting exception
                 catch (RemotingException e) {
-                    DateTime time;
-                    hosts.TryRemove(host, out time);
-                    new Thread(() => UpdateHostsEvent(hosts.Keys)).Start();    
+//                    DateTime time;
+//                    hosts.TryRemove(host, out time);
+//                    new Thread(() => UpdateHostsEvent(hosts.Keys)).Start();  
+                    string data;
+                    actualHosts.TryTake(out data);
+                    Log.Write(Log.LogEnum.Info, data + " отключился от поиска");
                 }
             }
         }
@@ -195,23 +262,29 @@ namespace DistributeSearchProject
             if (searchResult.ContainsKey(file.name)) {
                 if (searchResult[file.name].LastModifyTime.CompareTo(file.LastModifyTime) < 0) {
                     searchResult[file.name] = file;
+                    Log.Write(Log.LogEnum.Info, "Файл " + file.name + " с хоста " + searchResult[file.name].hostIp + " заменен версией с хоста " + file.hostIp);
                 }
             } else {
                 searchResult.TryAdd(file.name, file);
                 if (UpdateSearchResultEvent != null)
                     UpdateSearchResultEvent(file.name);
+                Log.Write(Log.LogEnum.Info, "Файл " + file.name + " добавлен");
             }
         }
 
         public void AddResultByRemote(FileInformation file, string host) {
+            Log.Write(Log.LogEnum.Info, "Получен файл с хоста " + host);
+
             if (searchResult.ContainsKey(file.name)) {
                 if (searchResult[file.name].LastModifyTime.CompareTo(file.LastModifyTime) < 0) {
                     searchResult[file.name] = file;
+                    Log.Write(Log.LogEnum.Info, "Файл " + file.name + " с хоста " + searchResult[file.name].hostIp + " заменен версией с хоста " + file.hostIp);
                 }
             } else {
                 searchResult.TryAdd(file.name, file);
                 if (UpdateSearchResultEvent != null)
                     UpdateSearchResultEvent(file.name);
+                Log.Write(Log.LogEnum.Info, "Файл " + file.name + " добавлен");
             }
         }
 

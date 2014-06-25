@@ -41,6 +41,7 @@ namespace DistributeSearchProject.Remoting
             RemotingConfiguration.RegisterWellKnownServiceType(typeof(RemoteAddResult), "RemoteAddResult", WellKnownObjectMode.SingleCall);
             RemotingConfiguration.RegisterWellKnownServiceType(typeof(RemoteClearResults), "RemoteClearResults", WellKnownObjectMode.SingleCall);
             RemotingConfiguration.RegisterWellKnownServiceType(typeof(RemoteStopFinding), "RemoteStopFinding", WellKnownObjectMode.SingleCall);
+            RemotingConfiguration.RegisterWellKnownServiceType(typeof(RemoteHostProvider), "RemoteHostProvider", WellKnownObjectMode.SingleCall);
 
             RemotingConfiguration.RegisterWellKnownServiceType(typeof(TcpFileSender), "TcpFileSender", WellKnownObjectMode.SingleCall);
         }

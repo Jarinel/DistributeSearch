@@ -58,6 +58,7 @@
     <Compile Include="Model.cs" />
     <Compile Include="Remoting\RemoteClearResults.cs" />
     <Compile Include="Remoting\RemoteAddResult.cs" />
+    <Compile Include="Remoting\RemoteHostProvider.cs" />
     <Compile Include="Remoting\RemoteSearch.cs" />
     <Compile Include="Remoting\RemoteStopFinding.cs" />
     <Compile Include="Remoting\RemotingServer.cs" />
@@ -67,6 +68,7 @@
     <Compile Include="Tcp\TcpFileReceiver.cs" />
     <Compile Include="Tcp\TcpFileSender.cs" />
     <Compile Include="Udp\UdpService.cs" />
+    <Compile Include="Utils\Log.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

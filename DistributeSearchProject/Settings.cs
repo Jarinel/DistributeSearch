@@ -22,9 +22,14 @@ namespace DistributeSearchProject
         
         public static string DIRECTORY;
         public static string DOWNLOAD_DIRECTORY;
+        public static string LOG_PATH;
 
         public static int BUFFER_SIZE;
         public static int TCP_TRANSFER_BUFFER;
+
+        public static bool LOG_ERROR;
+        public static bool LOG_WARNING;
+        public static bool LOG_INFO;
 
         static Settings() {
             BROADCAST_IP            = IPAddress.Parse(ConfigurationManager.AppSettings["broadcast_ip"]);
@@ -40,9 +45,14 @@ namespace DistributeSearchProject
 
             DIRECTORY               = ConfigurationManager.AppSettings["directory"];
             DOWNLOAD_DIRECTORY      = ConfigurationManager.AppSettings["download_directory"];
+            LOG_PATH                = ConfigurationManager.AppSettings["log_path"];
 
             BUFFER_SIZE             = int.Parse(ConfigurationManager.AppSettings["buffer_size"]);
             TCP_TRANSFER_BUFFER     = int.Parse(ConfigurationManager.AppSettings["tcp_transfer_buffer"]);
+
+            LOG_ERROR               = bool.Parse(ConfigurationManager.AppSettings["log_error"]);
+            LOG_WARNING             = bool.Parse(ConfigurationManager.AppSettings["log_warning"]);
+            LOG_INFO                = bool.Parse(ConfigurationManager.AppSettings["log_info"]);
         }
 
     }
