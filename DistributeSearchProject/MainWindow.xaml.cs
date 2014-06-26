@@ -168,6 +168,10 @@ namespace DistributeSearchProject
 //            List<string> hosts = model.GetHosts();
             List<string> hosts = model.GetActualHosts();
 
+            PrepareSearch(hosts);
+            if (model.State == Model.MainState.ReadyToSearch)
+                return;
+
             foreach (var host in hosts) {
                 try {
                     if (!Settings.LOCAL_IP.ToString().Equals(host)) {

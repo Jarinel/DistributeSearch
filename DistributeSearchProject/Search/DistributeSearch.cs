@@ -101,10 +101,12 @@ namespace DistributeSearchProject.Search
             }
             resultFiles.Clear();
 
-            foreach (var thread in searchThreads) {
-                if (thread != null) {
-                    thread.Interrupt();
-                    thread.Abort();
+            if (searchThreads != null) {
+                foreach (var thread in searchThreads) {
+                    if (thread != null) {
+                        thread.Interrupt();
+                        thread.Abort();
+                    }
                 }
             }
 

@@ -166,7 +166,11 @@ namespace DistributeSearchProject
                 if (State == MainState.Idle)
                     return;
 
-                ModelClosingEvent -= searcher.StopSearch;
+                try {
+                    ModelClosingEvent -= searcher.StopSearch;
+                }
+                catch (ArgumentException e) {
+                }
 
                 if (searcher != null)
                     searcher.StopSearch();
