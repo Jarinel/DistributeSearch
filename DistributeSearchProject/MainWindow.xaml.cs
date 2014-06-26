@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -59,6 +60,8 @@ namespace DistributeSearchProject
         public MainWindow()
         {
             InitializeComponent();
+
+            Directory.CreateDirectory(Settings.DOWNLOAD_DIRECTORY);
             Closing += ClosingHandler;
 
 //            mainState = MainState.Idle;

@@ -8,7 +8,7 @@
         <Button x:Name="FindButton" Content="Начать поиск" Margin="165,38,10,0" Height="23" VerticalAlignment="Top"/>
         <Label Content="Хосты в сети:" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,66,10,0" Height="23" Width="100"/>
         <ListBox x:Name="HostListBox" HorizontalAlignment="Right" Margin="0,94,10,10" Width="100"/>
-        <Label x:Name="FileInfoLabel" Content="" Margin="165,94,115,0" VerticalAlignment="Top" Height="150"/>
+        <Label x:Name="FileInfoLabel" Content="" Margin="165,94,115,0" VerticalAlignment="Top" Height="150" BorderThickness="1" BorderBrush="#FF9E9A9A"/>
         <Button x:Name="DownloadButton" Content="Скачать" Margin="165,66,115,0" VerticalAlignment="Top" Height="23"/>
 
     </Grid>
