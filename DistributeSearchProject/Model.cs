@@ -110,15 +110,18 @@ namespace DistributeSearchProject
         public long SearchResolve(long unique) {
             if (State == MainState.Idle || State == MainState.Searching) {
                 State = MainState.ReadyToSearch;
+                return 0;
             }
 
             if (State == MainState.SearchInitiator) {
                 if (Unique - unique < 0) {
                     State = MainState.ReadyToSearch;
-                }    
+                }
+
+                return Unique;
             }
 
-            return Unique;
+            return 0;
         }
 
         public void ClearSearchResults() {
