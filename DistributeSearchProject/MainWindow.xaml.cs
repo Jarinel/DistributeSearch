@@ -159,6 +159,9 @@ namespace DistributeSearchProject
             model.State = Model.MainState.SearchInitiator;
 
             foreach (var host in hosts) {
+                if(host.Equals(Settings.LOCAL_IP.ToString()))
+                    continue;
+
                 var url = "tcp://" + host + ":" + Settings.REMOTING_SERVER_PORT + "/RemoteSearchResolve";
                 var resolver = (RemoteSearchResolve) Activator.GetObject(typeof (RemoteSearchResolve), url);
 
