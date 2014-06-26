@@ -72,6 +72,7 @@ namespace DistributeSearchProject
             model.UpdateSearchResultEvent += ResultListBoxUpdateHandler;
 
             RemoteSearch.LocalFindFiles                 += model.FindFiles;
+            RemoteSearch.LocalFindFiles                 += LocalFindFiles;
             RemoteStopFinding.StopFindingFunction       += model.StopFinding;
             RemoteAddResult.LocalAddResult              += model.AddResultByRemote;
             RemoteHostProvider.GetHostsFunction         += model.GetHosts;
@@ -92,6 +93,12 @@ namespace DistributeSearchProject
             FindButton.Click += ClickHandler;
             DownloadButton.Click += DownloadButtonClickHandler;
             ResultListBox.SelectionChanged += ShowFileInfo;
+        }
+
+        private void LocalFindFiles(string data)
+        {
+            Dispatcher.BeginInvoke(
+                (Action)(() => NowSearchLabel.Content = data));
         }
 
         private void ClosingHandler(object o, CancelEventArgs e) {

@@ -137,10 +137,12 @@ namespace DistributeSearchProject
             actualHosts = new ConcurrentBag<string>(list);
         }
 
-        public void FindFiles(String data) {
-            new Thread(() => {
-                State = MainState.Searching;
-
+        public void FindFiles(String searchString)
+        {
+            Task.Factory.StartNew(() =>
+            {
+            	State = MainState.Searching;
+            	
                 searcher = new DistributeSearch();
                 searcher.ListUpdate += AddResult;
 
@@ -149,16 +151,16 @@ namespace DistributeSearchProject
                 ModelClosingEvent += searcher.StopSearch;
 
                 Log.WriteInfo("Начат поиск в папке " + Settings.DIRECTORY);
-                searcher.FindFiles(data, Settings.DIRECTORY, Settings.BUFFER_SIZE);
+                searcher.FindFiles(searchString, Settings.DIRECTORY, Settings.BUFFER_SIZE);
                 Log.WriteInfo("Поиск завершен");
 
                 State = MainState.Idle;
                 //Search finished before program close
                 ModelClosingEvent -= searcher.StopSearch;
 
-//                if (SearchFinishedEvent != null)
-//                    SearchFinishedEvent();
-            }).Start();
+                //                if (SearchFinishedEvent != null)
+                //                    SearchFinishedEvent();
+            });
         }
 
         public void StopFinding() {
