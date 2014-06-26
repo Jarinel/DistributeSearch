@@ -115,7 +115,9 @@ namespace DistributeSearchProject
                 //Stop search threads if close before search finished
                 ModelClosingEvent += searcher.StopSearch;
 
+                Log.WriteInfo("Начат поиск в папке " + Settings.DIRECTORY);
                 searcher.FindFiles(data, Settings.DIRECTORY, Settings.BUFFER_SIZE);
+                Log.WriteInfo("Поиск завершен");
 
                 State = MainState.IDLE;
                 //Search finished before program close
@@ -146,6 +148,8 @@ namespace DistributeSearchProject
             else {
                 hosts.TryAdd(ipAddress, DateTime.Now);
 
+                Log.WriteInfo(ipAddress + " подключился");
+
                 if (UpdateHostsEvent != null)
                     UpdateHostsEvent(hosts.Keys);
             }
@@ -165,13 +169,13 @@ namespace DistributeSearchProject
                     result = result.Union(list).ToList();
                 }
                 catch (SocketException e) {
-                    Log.Write(Log.LogEnum.Warning, e.Message);
+                    Log.WriteWarning(e.Message);
                 }
                 catch (RemotingException e) {
-                    Log.Write(Log.LogEnum.Warning, e.Message);
+                    Log.WriteWarning(e.Message);
                 }
                 catch (Exception e) {
-                    Log.Write(Log.LogEnum.Error, "", e);
+                    Log.WriteException(e);
                 }
             }
 
@@ -188,13 +192,13 @@ namespace DistributeSearchProject
                     remoteHostProvider.SetActualHosts(hosts);
                 }
                 catch (SocketException e) {
-                    Log.Write(Log.LogEnum.Warning, e.Message);
+                    Log.WriteWarning(e.Message);
                 }
                 catch (RemotingException e) {
-                    Log.Write(Log.LogEnum.Warning, e.Message);
+                    Log.WriteWarning(e.Message);
                 }
                 catch (Exception e) {
-                    Log.Write(Log.LogEnum.Error, "", e);
+                    Log.WriteException(e);
                 }
             }
         }
@@ -209,6 +213,8 @@ namespace DistributeSearchProject
                     foreach (var address in toDelete){
                         DateTime temp;
                         hosts.TryRemove(address, out temp);
+
+                        Log.WriteInfo(address + " отключился");
                     }
 
                     if (UpdateHostsEvent != null && toDelete.Count > 0)
@@ -231,7 +237,7 @@ namespace DistributeSearchProject
                     var remote = (RemoteAddResult) Activator.GetObject(typeof (RemoteAddResult), url);
                     remote.AddResult(file, localHost);
 
-                    Log.Write(Log.LogEnum.Info, "Передаем файл " + file.name + " на хост " + host);
+                    Log.WriteInfo("Передаем файл " + file.name + " на хост " + host);
                 }
                 catch (SocketException e) {
                     //We just remove bad host from actualHosts
@@ -241,7 +247,7 @@ namespace DistributeSearchProject
 //                    new Thread(() => UpdateHostsEvent(hosts.Keys)).Start();
                     string data;
                     actualHosts.TryTake(out data);
-                    Log.Write(Log.LogEnum.Info, data + " отключился от поиска");
+                    Log.WriteInfo(data + " отключился от поиска");
                 }
                 //TODO: Concretize Remoting exception
                 catch (RemotingException e) {
@@ -250,7 +256,7 @@ namespace DistributeSearchProject
 //                    new Thread(() => UpdateHostsEvent(hosts.Keys)).Start();  
                     string data;
                     actualHosts.TryTake(out data);
-                    Log.Write(Log.LogEnum.Info, data + " отключился от поиска");
+                    Log.WriteInfo(data + " отключился от поиска");
                 }
             }
         }
@@ -261,30 +267,30 @@ namespace DistributeSearchProject
             //Here lock may be needed
             if (searchResult.ContainsKey(file.name)) {
                 if (searchResult[file.name].LastModifyTime.CompareTo(file.LastModifyTime) < 0) {
+                    Log.WriteInfo("Файл " + file.name + " [" + searchResult[file.name].directory + "] с хоста " + searchResult[file.name].hostIp + " заменен версией с хоста " + file.hostIp + " из папки " + file.directory);
+
                     searchResult[file.name] = file;
-                    Log.Write(Log.LogEnum.Info, "Файл " + file.name + " с хоста " + searchResult[file.name].hostIp + " заменен версией с хоста " + file.hostIp);
                 }
             } else {
                 searchResult.TryAdd(file.name, file);
                 if (UpdateSearchResultEvent != null)
                     UpdateSearchResultEvent(file.name);
-                Log.Write(Log.LogEnum.Info, "Файл " + file.name + " добавлен");
+                Log.WriteInfo("Файл " + file.name + " добавлен, хост [" + host + "]");
             }
         }
 
         public void AddResultByRemote(FileInformation file, string host) {
-            Log.Write(Log.LogEnum.Info, "Получен файл с хоста " + host);
-
             if (searchResult.ContainsKey(file.name)) {
                 if (searchResult[file.name].LastModifyTime.CompareTo(file.LastModifyTime) < 0) {
+                    Log.WriteInfo("Файл " + file.name + " [" + searchResult[file.name].directory + "] с хоста " + searchResult[file.name].hostIp + " заменен версией с хоста " + file.hostIp + " из папки " + file.directory);
+
                     searchResult[file.name] = file;
-                    Log.Write(Log.LogEnum.Info, "Файл " + file.name + " с хоста " + searchResult[file.name].hostIp + " заменен версией с хоста " + file.hostIp);
                 }
             } else {
                 searchResult.TryAdd(file.name, file);
                 if (UpdateSearchResultEvent != null)
                     UpdateSearchResultEvent(file.name);
-                Log.Write(Log.LogEnum.Info, "Файл " + file.name + " добавлен");
+                Log.WriteInfo("Файл " + file.name + " добавлен, хост [" + host + "]");
             }
         }
 

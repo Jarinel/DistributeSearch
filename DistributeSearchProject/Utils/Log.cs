@@ -13,6 +13,22 @@ namespace DistributeSearchProject
             Info
         }
 
+        public static void WriteInfo(string info) {
+            Write(LogEnum.Info, info);
+        }
+
+        public static void WriteWarning(string warning) {
+            Write(LogEnum.Warning, warning);
+        }
+
+        public static void WriteError(string error) {
+            Write(LogEnum.Error, error);
+        }
+
+        public static void WriteException(Exception e) {
+            Write(LogEnum.Error, "", e);
+        }
+
         public static void Write(LogEnum logEnum, string error = "", Exception exception = null) {
             var write = false;
             switch (logEnum) {
