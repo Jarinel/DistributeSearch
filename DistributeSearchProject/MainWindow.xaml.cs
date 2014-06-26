@@ -61,20 +61,23 @@ namespace DistributeSearchProject
             InitializeComponent();
             Closing += ClosingHandler;
 
-//            mainState = MainState.IDLE;
+//            mainState = MainState.Idle;
             downloadState = DownloadState.IDLE;
 
             model = new Model();
             model.UpdateHostsEvent += HostListBoxUpdateHandler;
             model.UpdateSearchResultEvent += ResultListBoxUpdateHandler;
 
-            RemoteSearch.LocalFindFiles                 = model.FindFiles;
-            RemoteStopFinding.StopFindingFunction       = model.StopFinding;
-            RemoteAddResult.LocalAddResult              = model.AddResultByRemote;
-            RemoteHostProvider.GetHostsFunction         = model.GetHosts;
-            RemoteHostProvider.SetActualHostsFunction   = model.SetActualHosts;
+            RemoteSearch.LocalFindFiles                 += model.FindFiles;
+            RemoteStopFinding.StopFindingFunction       += model.StopFinding;
+            RemoteAddResult.LocalAddResult              += model.AddResultByRemote;
+            RemoteHostProvider.GetHostsFunction         += model.GetHosts;
+            RemoteHostProvider.SetActualHostsFunction   += model.SetActualHosts;
+            RemoteSearchResolve.SearchResolveFunction   += model.SearchResolve;
 
-            RemoteClearResults.ClearResultsFunction     = ClearResults;
+            RemoteClearResults.ClearResultsFunction     += ClearResults;
+
+            model.Unique = long.Parse(Settings.LOCAL_IP.ToString().Replace(".", ""));
 
             udpService = new UdpService(Settings.BROADCAST_IP, Settings.UDP_PORT, Settings.UDP_BROADCAST_DELAY);
             udpService.NewConnectionEvent += model.AddHost;
@@ -139,6 +142,21 @@ namespace DistributeSearchProject
                     DispatcherPriority.Normal,
                     new ClearResultsDelegate(ClearResults)
                 );
+            }
+        }
+
+        private void PrepareSearch(List<string> hosts) {
+            model.State = Model.MainState.SearchInitiator;
+
+            foreach (var host in hosts) {
+                var url = "tcp://" + host + ":" + Settings.REMOTING_SERVER_PORT + "/RemoteSearchResolve";
+                var resolver = (RemoteSearchResolve) Activator.GetObject(typeof (RemoteSearchResolve), url);
+
+                var unique = resolver.SearchResolve(model.Unique);
+                if (model.Unique - unique < 0) {
+                    model.State = Model.MainState.ReadyToSearch;
+                    break;
+                }
             }
         }
 

@@ -50,11 +50,28 @@ namespace DistributeSearchProject
             }
         }
 
+        private object uniqueLock = new object();
+        private long _Unique;
+
+        public long Unique {
+            get {
+                lock (uniqueLock) {
+                    return _Unique;
+                }
+            }
+            set {
+                lock (uniqueLock) {
+                    _Unique = value;
+                }
+            }
+        }
+
         public enum MainState
         {
-            IDLE,
-            WAITING,
-            SEARCHING
+            Idle,
+            ReadyToSearch,
+            Searching,
+            SearchInitiator
         }
 
         private readonly object stateLock = new object();
@@ -79,7 +96,7 @@ namespace DistributeSearchProject
             hostRemoverThread = new Thread(RemoveHostsProc);
             hostRemoverThread.Start();
 
-            State = MainState.IDLE;
+            State = MainState.Idle;
         }
 
         public void Close() {
@@ -88,6 +105,20 @@ namespace DistributeSearchProject
             hostRemoverThread.Interrupt();
             if(ModelClosingEvent != null)
                 ModelClosingEvent();
+        }
+
+        public long SearchResolve(long unique) {
+            if (State == MainState.Idle || State == MainState.Searching) {
+                State = MainState.ReadyToSearch;
+            }
+
+            if (State == MainState.SearchInitiator) {
+                if (Unique - unique < 0) {
+                    State = MainState.ReadyToSearch;
+                }    
+            }
+
+            return Unique;
         }
 
         public void ClearSearchResults() {
@@ -108,10 +139,12 @@ namespace DistributeSearchProject
 
         public void FindFiles(String data) {
             new Thread(() => {
+                State = MainState.Searching;
+
                 searcher = new DistributeSearch();
                 searcher.ListUpdate += AddResult;
 
-                State = MainState.SEARCHING;
+                State = MainState.Searching;
                 //Stop search threads if close before search finished
                 ModelClosingEvent += searcher.StopSearch;
 
@@ -119,7 +152,7 @@ namespace DistributeSearchProject
                 searcher.FindFiles(data, Settings.DIRECTORY, Settings.BUFFER_SIZE);
                 Log.WriteInfo("Поиск завершен");
 
-                State = MainState.IDLE;
+                State = MainState.Idle;
                 //Search finished before program close
                 ModelClosingEvent -= searcher.StopSearch;
 
@@ -130,7 +163,7 @@ namespace DistributeSearchProject
 
         public void StopFinding() {
             var stopSearchThread = new Thread(() => {
-                if (State == MainState.IDLE)
+                if (State == MainState.Idle)
                     return;
 
                 ModelClosingEvent -= searcher.StopSearch;
