@@ -71,13 +71,14 @@ namespace DistributeSearchProject
             model.UpdateHostsEvent += HostListBoxUpdateHandler;
             model.UpdateSearchResultEvent += ResultListBoxUpdateHandler;
 
-            RemoteSearch.LocalFindFiles                 = model.FindFiles;
-            RemoteStopFinding.StopFindingFunction       = model.StopFinding;
-            RemoteAddResult.LocalAddResult              = model.AddResultByRemote;
-            RemoteHostProvider.GetHostsFunction         = model.GetHosts;
-            RemoteHostProvider.SetActualHostsFunction   = model.SetActualHosts;
+            RemoteSearch.LocalFindFiles                 += model.FindFiles;
+            RemoteSearch.LocalFindFiles                 += LocalFindFiles;
+            RemoteStopFinding.StopFindingFunction       += model.StopFinding;
+            RemoteAddResult.LocalAddResult              += model.AddResultByRemote;
+            RemoteHostProvider.GetHostsFunction         += model.GetHosts;
+            RemoteHostProvider.SetActualHostsFunction   += model.SetActualHosts;
 
-            RemoteClearResults.ClearResultsFunction     = ClearResults;
+            RemoteClearResults.ClearResultsFunction     += ClearResults;
 
             udpService = new UdpService(Settings.BROADCAST_IP, Settings.UDP_PORT, Settings.UDP_BROADCAST_DELAY);
             udpService.NewConnectionEvent += model.AddHost;
@@ -89,6 +90,12 @@ namespace DistributeSearchProject
             FindButton.Click += ClickHandler;
             DownloadButton.Click += DownloadButtonClickHandler;
             ResultListBox.SelectionChanged += ShowFileInfo;
+        }
+
+        private void LocalFindFiles(string data)
+        {
+            Dispatcher.BeginInvoke(
+                (Action)(() => NowSearchLabel.Content = data));
         }
 
         private void ClosingHandler(object o, CancelEventArgs e) {

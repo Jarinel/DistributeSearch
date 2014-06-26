@@ -1,15 +1,32 @@
 ﻿<Window x:Class="DistributeSearchProject.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Distribute Search" Height="600" Width="800">
-    <Grid>
-        <ListBox x:Name="ResultListBox" Margin="10,10,0,10" HorizontalAlignment="Left" Width="150"/>
-        <TextBox x:Name="FindPatternTextBox" Margin="165,10,10,0" TextWrapping="Wrap" Text="xml" Height="23" VerticalAlignment="Top"/>
-        <Button x:Name="FindButton" Content="Начать поиск" Margin="165,38,10,0" Height="23" VerticalAlignment="Top"/>
-        <Label Content="Хосты в сети:" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,66,10,0" Height="23" Width="100"/>
-        <ListBox x:Name="HostListBox" HorizontalAlignment="Right" Margin="0,94,10,10" Width="100"/>
-        <Label x:Name="FileInfoLabel" Content="" Margin="165,94,115,0" VerticalAlignment="Top" Height="150" BorderThickness="1" BorderBrush="#FF9E9A9A"/>
-        <Button x:Name="DownloadButton" Content="Скачать" Margin="165,66,115,0" VerticalAlignment="Top" Height="23"/>
-
-    </Grid>
+        Title="Distribute Search" Height="500" Width="800">
+    <Window.Resources>
+        <Style TargetType="StackPanel">
+            <Setter Property="Margin" Value="4"/>
+        </Style>
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="4"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <StackPanel>
+            <Label>Результаты поиска:</Label>
+            <ListBox DockPanel.Dock="Left" x:Name="ResultListBox" Width="170" Height="500"/>
+        </StackPanel>
+        
+        <TextBox DockPanel.Dock="Top" x:Name="FindPatternTextBox"  TextWrapping="Wrap" Text="xml" Height="23" />
+        <StackPanel DockPanel.Dock="Right" Width="150">
+            <Label Content="Хосты в сети:" HorizontalAlignment="Left" VerticalAlignment="Top" Height="23" />
+            <ListBox x:Name="HostListBox" HorizontalAlignment="Right" Width="150" Height="300"/>
+        </StackPanel>
+        <Button DockPanel.Dock="Top" x:Name="FindButton" Content="Начать поиск" Height="23" VerticalAlignment="Top"/>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+            <Label Content="Выполняется поиск:"/>
+            <Label Content="..." Name="NowSearchLabel"/>
+        </StackPanel>
+        <Label DockPanel.Dock="Top" x:Name="FileInfoLabel" Content="" VerticalAlignment="Top" Height="150" BorderThickness="1" BorderBrush="#FF9E9A9A"/>
+        <Button DockPanel.Dock="Top" x:Name="DownloadButton" Content="Скачать" VerticalAlignment="Top" Height="23"/>
+    </DockPanel>
 </Window>
